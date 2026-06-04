@@ -1,100 +1,65 @@
 <template>
   <div class="flex overflow-x-auto h-full">
-    <Draggable
-      v-if="columns"
-      :list="columns"
-      item-key="column"
-      :delay="isTouchScreenDevice() ? 200 : 0"
-      class="flex sm:mx-2.5 mx-2 pb-3.5"
-      @end="updateColumn"
-    >
+    <Draggable v-if="columns" :list="columns" item-key="column" :delay="isTouchScreenDevice() ? 200 : 0"
+      class="flex sm:mx-2.5 mx-2 pb-3.5" @end="updateColumn">
       <template #item="{ element: column }">
-        <div
-          v-if="!column.column.delete"
-          class="flex flex-col gap-2.5 min-w-72 w-72 hover:bg-surface-gray-2 rounded-lg p-2.5"
-        >
+        <div v-if="!column.column.delete"
+          class="flex flex-col gap-2.5 min-w-72 w-72 hover:bg-surface-gray-2 rounded-lg p-2.5">
           <div class="flex gap-2 items-center group justify-between">
             <div class="flex items-center text-base">
               <Popover>
                 <template #target="{ togglePopover }">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    class="hover:!bg-surface-gray-2"
-                    @click="togglePopover"
-                  >
+                  <Button variant="ghost" size="sm" class="hover:!bg-surface-gray-2" @click="togglePopover">
                     <IndicatorIcon :class="parseColor(column.column.color)" />
                   </Button>
                 </template>
                 <template #body>
                   <div
-                    class="flex flex-col gap-3 px-3 py-2.5 min-w-40 rounded-lg bg-surface-modal shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none"
-                  >
+                    class="flex flex-col gap-3 px-3 py-2.5 min-w-40 rounded-lg bg-surface-modal shadow-2xl ring-1 ring-black ring-opacity-5 focus:outline-none">
                     <div class="flex gap-1">
-                      <Button
-                        v-for="color in colors"
-                        :key="color"
-                        variant="ghost"
-                        @click="() => (column.column.color = color)"
-                      >
+                      <Button v-for="color in colors" :key="color" variant="ghost"
+                        @click="() => (column.column.color = color)">
                         <IndicatorIcon :class="parseColor(color)" />
                       </Button>
                     </div>
                     <div class="flex flex-row-reverse">
-                      <Button
-                        variant="solid"
-                        :label="__('Apply')"
-                        @click="updateColumn"
-                      />
+                      <Button variant="solid" :label="__('Apply')" @click="updateColumn" />
                     </div>
                   </div>
                 </template>
               </Popover>
               <div class="text-ink-gray-9">{{ column.column.name }}</div>
+              <Tooltip 
+                v-if="columnDescription(column.column.name)" 
+                :text="columnDescription(column.column.name)"
+              >
+                <HelpIcon class="h-4 w-4 text-ink-gray-5" />
+              </Tooltip>
             </div>
             <div class="flex">
               <Dropdown :options="actions(column)">
                 <template #default>
                   <Button
                     class="opacity-0 group-hover:opacity-100 pointer-events-none group-hover:pointer-events-auto transition-opacity"
-                    icon="more-horizontal"
-                    variant="ghost"
-                  />
+                    icon="more-horizontal" variant="ghost" />
                 </template>
               </Dropdown>
-              <Button
-                icon="plus"
-                variant="ghost"
-                @click="options.onNewClick(column)"
-              />
+              <Button icon="plus" variant="ghost" @click="options.onNewClick(column)" />
             </div>
           </div>
           <div class="overflow-y-auto flex flex-col gap-2 h-full">
-            <Draggable
-              :list="column.data"
-              group="fields"
-              item-key="name"
-              class="flex flex-col gap-3.5 flex-1"
-              :delay="isTouchScreenDevice() ? 200 : 0"
-              :data-column="column.column.name"
-              @end="updateColumn"
-            >
+            <Draggable :list="column.data" group="fields" item-key="name" class="flex flex-col gap-3.5 flex-1"
+              :delay="isTouchScreenDevice() ? 200 : 0" :data-column="column.column.name" @end="updateColumn">
               <template #item="{ element: fields }">
-                <component
-                  :is="options.getRoute ? 'router-link' : 'div'"
+                <component :is="options.getRoute ? 'router-link' : 'div'"
                   class="pt-3 px-3.5 pb-2.5 rounded-lg border bg-surface-white text-base flex flex-col text-ink-gray-9"
-                  :data-name="fields.name"
-                  v-bind="{
+                  :data-name="fields.name" v-bind="{
                     to: options.getRoute ? options.getRoute(fields) : undefined,
                     onClick: options.onClick
                       ? () => options.onClick(fields)
                       : undefined,
-                  }"
-                >
-                  <slot
-                    name="title"
-                    v-bind="{ fields, titleField, itemName: fields.name }"
-                  >
+                  }">
+                  <slot name="title" v-bind="{ fields, titleField, itemName: fields.name }">
                     <div class="h-5 flex items-center">
                       <div v-if="fields[titleField]">
                         {{ fields[titleField] }}
@@ -108,14 +73,11 @@
 
                   <div class="flex flex-col gap-3.5">
                     <template v-for="value in column.fields" :key="value">
-                      <slot
-                        name="fields"
-                        v-bind="{
-                          fields,
-                          fieldName: value,
-                          itemName: fields.name,
-                        }"
-                      >
+                      <slot name="fields" v-bind="{
+                        fields,
+                        fieldName: value,
+                        itemName: fields.name,
+                      }">
                         <div v-if="fields[value]" class="truncate">
                           {{ fields[value] }}
                         </div>
@@ -132,40 +94,21 @@
                 </component>
               </template>
             </Draggable>
-            <div
-              v-if="column.column.count < column.column.all_count"
-              class="flex items-center justify-center"
-            >
-              <Button
-                :label="__('Load More')"
-                @click="emit('loadMore', column.column.name)"
-              />
+            <div v-if="column.column.count < column.column.all_count" class="flex items-center justify-center">
+              <Button :label="__('Load More')" @click="emit('loadMore', column.column.name)" />
             </div>
           </div>
         </div>
       </template>
     </Draggable>
     <div class="shrink-0 min-w-64">
-      <Autocomplete
-        value=""
-        :options="deletedColumns"
-        @change="(e) => addColumn(e)"
-      >
+      <Autocomplete value="" :options="deletedColumns" @change="(e) => addColumn(e)">
         <template #target="{ togglePopover }">
-          <Button
-            class="w-full mt-2.5 mb-1 mr-5"
-            :label="__('Add Column')"
-            iconLeft="plus"
-            @click="togglePopover()"
-          />
+          <Button class="w-full mt-2.5 mb-1 mr-5" :label="__('Add Column')" iconLeft="plus" @click="togglePopover()" />
         </template>
         <template #footer>
-          <Button
-            class="w-full"
-            :label="__('Reload Columns')"
-            :iconLeft="RefreshIcon"
-            @click="updateColumn(null, true)"
-          />
+          <Button class="w-full" :label="__('Reload Columns')" :iconLeft="RefreshIcon"
+            @click="updateColumn(null, true)" />
         </template>
       </Autocomplete>
     </div>
@@ -177,8 +120,10 @@ import Autocomplete from '@/components/frappe-ui/Autocomplete.vue'
 import IndicatorIcon from '@/components/Icons/IndicatorIcon.vue'
 import { isTouchScreenDevice, colors, parseColor } from '@/utils'
 import Draggable from 'vuedraggable'
-import { Dropdown, Popover } from 'frappe-ui'
+import { Dropdown, Popover, Tooltip } from 'frappe-ui'
 import { computed } from 'vue'
+import { statusesStore } from '@/stores/statuses'
+import HelpIcon from '@/components/Icons/HelpIcon.vue'
 
 defineProps({
   options: {
@@ -190,6 +135,18 @@ defineProps({
     }),
   },
 })
+
+const { getLeadStatus, getDealStatus } = statusesStore()
+const statusDoctype = computed(() => {
+  const cf = kanban.value?.data?.column_field
+  return kanban.value?.data?.fields?.find((f) => f.fieldname === cf)?.options
+})
+
+function columnDescription(name) {
+  if (statusDoctype.value === 'CRM Lead Status')
+    return getLeadStatus(name)?.custom_description
+  return ''
+}
 
 const emit = defineEmits(['update', 'loadMore'])
 
