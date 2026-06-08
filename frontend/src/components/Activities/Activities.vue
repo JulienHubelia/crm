@@ -398,6 +398,12 @@
         @afterSave="(data) => emit('afterSave', data)"
       />
     </div>
+    <div v-else-if="title == 'Questionnaire'" class="flex flex-1 flex-col overflow-y-auto">
+      <QuestionnaireTab 
+        :doctype="doctype"
+        :docname="docname"
+      />
+    </div>
     <EmptyState
       v-else
       :title="emptyText"
@@ -471,6 +477,7 @@ import WhatsAppIcon from '@/components/Icons/WhatsAppIcon.vue'
 import EventArea from '@/components/Activities/EventArea.vue'
 import WhatsAppArea from '@/components/Activities/WhatsAppArea.vue'
 import WhatsAppBox from '@/components/Activities/WhatsAppBox.vue'
+import QuestionnaireTab from '@/components/Activities/QuestionnaireTab.vue'
 import LoadingIndicator from '@/components/Icons/LoadingIndicator.vue'
 import EmptyState from '@/components/ListViews/EmptyState.vue'
 import LeadsIcon from '@/components/Icons/LeadsIcon.vue'
@@ -651,6 +658,9 @@ const activities = computed(() => {
   } else if (title.value == 'Attachments') {
     if (!all_activities.data?.attachments) return []
     return sortByModified(all_activities.data.attachments)
+  } else if (title.value == 'Questionnaire') {
+    if (!all_activities.data?.questionnaire) return []
+    return sortByModified(all_activities.data.questionnaire)
   }
 
   _activities.forEach((activity) => {
