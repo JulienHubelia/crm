@@ -8,109 +8,79 @@
       </Breadcrumbs>
     </template>
     <template v-if="!errorTitle" #right-header>
-      <CustomActions
-        v-if="document._actions?.length"
-        :actions="document._actions"
-      />
-      <CustomActions
-        v-if="document.actions?.length"
-        :actions="document.actions"
-      />
+      <CustomActions v-if="document._actions?.length" :actions="document._actions" />
+      <CustomActions v-if="document.actions?.length" :actions="document.actions" />
       <AssignTo v-model="assignees.data" doctype="CRM Lead" :docname="leadId" />
-      <Dropdown
-        v-if="doc && document.statuses"
-        :options="statuses"
-        placement="right"
-      >
+      <Dropdown v-if="doc && document.statuses" :options="statuses" placement="right">
         <template #default="{ open }">
-          <Button
-            v-if="doc.status"
-            :label="statusLabel(doc.status)"
-            :iconRight="open ? 'chevron-up' : 'chevron-down'"
-          >
+          <Button v-if="doc.status" :label="statusLabel(doc.status)" :iconRight="open ? 'chevron-up' : 'chevron-down'">
             <template #prefix>
               <IndicatorIcon :class="getLeadStatus(doc.status).color" />
             </template>
           </Button>
         </template>
       </Dropdown>
-      <Button
-        :label="__('Convert to Deal')"
-        variant="solid"
-        @click="showConvertToDealModal = true"
-      />
+      <Button :label="__('Convert to Deal')" variant="solid" @click="showConvertToDealModal = true" />
     </template>
   </LayoutHeader>
   <div v-if="doc.name" class="flex h-full overflow-hidden">
-    <Tabs
-      v-model="tabIndex"
-      :tabs="tabs"
-      class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-0 [&_[role='tab']]:shrink-0 [&_[role='tablist']]:px-5 [&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tablist']]:min-h-[45px] [&_[role='tablist']]:gap-7.5 [&_[role='tabpanel']:not([hidden])]:flex [&_[role='tabpanel']:not([hidden])]:grow"
-    >
-      <template #tab-panel>
-        <Activities
-          ref="activities"
-          v-model:reload="reload"
-          v-model:tabIndex="tabIndex"
-          doctype="CRM Lead"
-          :docname="leadId"
-          :tabs="tabs"
-          @beforeSave="beforeStatusChange"
-          @afterSave="reloadResources"
-        />
-      </template>
-    </Tabs>
+    <div class="relative flex flex-1 overflow-hidden">
+      <Tabs v-model="tabIndex" :tabs="tabs"
+        class="flex flex-1 overflow-hidden flex-col [&_[role='tab']]:px-0 [&_[role='tab']]:shrink-0 [&_[role='tablist']]:px-5 [&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tablist']]:min-h-[45px] [&_[role='tablist']]:gap-7.5 [&_[role='tabpanel']:not([hidden])]:flex [&_[role='tabpanel']:not([hidden])]:grow">
+        <template #tab-panel>
+          <Activities 
+            ref="activities" 
+            v-model:reload="reload" 
+            v-model:tabIndex="tabIndex" 
+            doctype="CRM Lead" 
+            :docname="leadId" 
+            :tabs="tabs" 
+            @beforeSave="beforeStatusChange"
+            @afterSave="reloadResources" 
+          />
+          <ToolsDropdown
+            doctype="CRM Lead"
+            :docname="leadId"
+            class="absolute right-0 top-0 z-10 flex h-[45px] items-center pr-5" 
+          />
+        </template>
+      </Tabs>
+    </div>
     <Resizer class="flex flex-col justify-between border-l" side="right">
-      <div
-        class="flex h-[45px] cursor-copy items-center border-b px-5 py-2.5 text-lg font-medium text-ink-gray-9"
-        @click="copyToClipboard(leadId)"
-      >
+      <div class="flex h-[45px] cursor-copy items-center border-b px-5 py-2.5 text-lg font-medium text-ink-gray-9"
+        @click="copyToClipboard(leadId)">
         {{ __(leadId) }}
       </div>
-      <FileUploader
-        :validateFile="validateIsImageFile"
-        @success="(file) => updateField('image', file.file_url)"
-      >
+      <FileUploader :validateFile="validateIsImageFile" @success="(file) => updateField('image', file.file_url)">
         <template #default="{ openFileSelector }">
           <div class="flex items-center justify-start gap-5 border-b p-5">
             <div class="group relative size-12">
-              <Avatar
-                size="3xl"
-                class="size-12"
-                :label="title"
-                :image="doc.image"
-              />
-              <component
-                :is="doc.image ? Dropdown : 'div'"
-                v-bind="
-                  doc.image
-                    ? {
-                        options: [
-                          {
-                            icon: 'upload',
-                            label: doc.image
-                              ? __('Change Image')
-                              : __('Upload Image'),
-                            onClick: openFileSelector,
-                          },
-                          {
-                            icon: 'trash-2',
-                            label: __('Remove Image'),
-                            onClick: () => updateField('image', ''),
-                          },
-                        ],
-                      }
-                    : { onClick: openFileSelector }
-                "
-                class="!absolute bottom-0 left-0 right-0"
-              >
+              <Avatar size="3xl" class="size-12" :label="title" :image="doc.image" />
+              <component :is="doc.image ? Dropdown : 'div'" v-bind="doc.image
+                ? {
+                  options: [
+                    {
+                      icon: 'upload',
+                      label: doc.image
+                        ? __('Change Image')
+                        : __('Upload Image'),
+                      onClick: openFileSelector,
+                    },
+                    {
+                      icon: 'trash-2',
+                      label: __('Remove Image'),
+                      onClick: () => updateField('image', ''),
+                    },
+                  ],
+                }
+                : { onClick: openFileSelector }
+                " class="!absolute bottom-0 left-0 right-0">
                 <div
                   class="z-1 absolute bottom-0.5 left-0 right-0.5 flex h-9 cursor-pointer items-center justify-center rounded-b-full bg-black bg-opacity-40 pt-3 opacity-0 duration-300 ease-in-out group-hover:opacity-100"
                   style="
                     -webkit-clip-path: inset(12px 0 0 0);
                     clip-path: inset(12px 0 0 0);
-                  "
-                >
+                  ">
                   <CameraIcon class="size-4 cursor-pointer text-white" />
                 </div>
               </component>
@@ -122,115 +92,57 @@
                 </div>
               </Tooltip>
               <div class="flex gap-1.5">
-                <Button
-                  v-if="callEnabled"
-                  :tooltip="__('Make a Call')"
-                  :icon="PhoneIcon"
-                  @click="
-                    () =>
-                      doc.mobile_no
-                        ? makeCall(doc.mobile_no)
-                        : toast.error(
-                            __('Please set a mobile number to make calls'),
-                          )
-                  "
-                />
-
-                <Button
-                  :tooltip="__('Send an Email')"
-                  :icon="Email2Icon"
-                  @click="
-                    doc.email
-                      ? openEmailBox()
+                <Button v-if="callEnabled" :tooltip="__('Make a Call')" :icon="PhoneIcon" @click="
+                  () =>
+                    doc.mobile_no
+                      ? makeCall(doc.mobile_no)
                       : toast.error(
-                          __('Please set an email address to send emails'),
-                        )
-                  "
-                />
-                <Button
-                  :tooltip="__('Go to Website')"
-                  :icon="LinkIcon"
-                  @click="
-                    doc.website
-                      ? openWebsite(doc.website)
-                      : toast.error(__('Please set a website to visit'))
-                  "
-                />
+                        __('Please set a mobile number to make calls'),
+                      )
+                " />
 
-                <Button
-                  :tooltip="__('Attach a File')"
-                  :icon="AttachmentIcon"
-                  @click="showFilesUploader = true"
-                />
+                <Button :tooltip="__('Send an Email')" :icon="Email2Icon" @click="
+                  doc.email
+                    ? openEmailBox()
+                    : toast.error(
+                      __('Please set an email address to send emails'),
+                    )
+                  " />
+                <Button :tooltip="__('Go to Website')" :icon="LinkIcon" @click="
+                  doc.website
+                    ? openWebsite(doc.website)
+                    : toast.error(__('Please set a website to visit'))
+                  " />
 
-                <Button
-                  v-if="canDelete"
-                  :tooltip="__('Delete')"
-                  variant="subtle"
-                  theme="red"
-                  icon="trash-2"
-                  @click="deleteLead"
-                />
+                <Button :tooltip="__('Attach a File')" :icon="AttachmentIcon" @click="showFilesUploader = true" />
+
+                <Button v-if="canDelete" :tooltip="__('Delete')" variant="subtle" theme="red" icon="trash-2"
+                  @click="deleteLead" />
               </div>
               <ErrorMessage :message="__(error)" />
             </div>
           </div>
         </template>
       </FileUploader>
-      <SLASection
-        v-if="doc.sla_status"
-        v-model="doc"
-        @updateField="updateField"
-      />
-      <div
-        v-if="sections.data"
-        class="flex flex-1 flex-col justify-between overflow-hidden"
-      >
-        <SidePanelLayout
-          :sections="sections.data"
-          doctype="CRM Lead"
-          :docname="leadId"
-          @reload="sections.reload"
-          @beforeFieldChange="beforeStatusChange"
-          @afterFieldChange="reloadResources"
-        />
+      <SLASection v-if="doc.sla_status" v-model="doc" @updateField="updateField" />
+      <div v-if="sections.data" class="flex flex-1 flex-col justify-between overflow-hidden">
+        <SidePanelLayout :sections="sections.data" doctype="CRM Lead" :docname="leadId" @reload="sections.reload"
+          @beforeFieldChange="beforeStatusChange" @afterFieldChange="reloadResources" />
       </div>
     </Resizer>
+
   </div>
-  <ErrorPage
-    v-else-if="errorTitle"
-    :errorTitle="errorTitle"
-    :errorMessage="errorMessage"
-  />
-  <ConvertToDealModal
-    v-if="showConvertToDealModal"
-    v-model="showConvertToDealModal"
-    :lead="doc"
-  />
-  <FilesUploader
-    v-model="showFilesUploader"
-    doctype="CRM Lead"
-    :docname="leadId"
-    @after="
-      () => {
-        activities?.all_activities?.reload()
-        changeTabTo('attachments')
-      }
-    "
-  />
-  <DeleteLinkedDocModal
-    v-if="showDeleteLinkedDocModal"
-    v-model="showDeleteLinkedDocModal"
-    :doctype="'CRM Lead'"
-    :docname="leadId"
-    name="Leads"
-  />
-  <LostReasonModal
-    v-if="showLostReasonModal"
-    v-model="showLostReasonModal"
-    doctype="CRM Lead"
-    :document="document"
-  />
+  <ErrorPage v-else-if="errorTitle" :errorTitle="errorTitle" :errorMessage="errorMessage" />
+  <ConvertToDealModal v-if="showConvertToDealModal" v-model="showConvertToDealModal" :lead="doc" />
+  <FilesUploader v-model="showFilesUploader" doctype="CRM Lead" :docname="leadId" @after="
+    () => {
+      activities?.all_activities?.reload()
+      changeTabTo('attachments')
+    }
+  " />
+  <DeleteLinkedDocModal v-if="showDeleteLinkedDocModal" v-model="showDeleteLinkedDocModal" :doctype="'CRM Lead'"
+    :docname="leadId" name="Leads" />
+  <LostReasonModal v-if="showLostReasonModal" v-model="showLostReasonModal" doctype="CRM Lead" :document="document" />
 </template>
 <script setup>
 import DeleteLinkedDocModal from '@/components/DeleteLinkedDocModal.vue'
@@ -246,6 +158,7 @@ import EventIcon from '@/components/Icons/EventIcon.vue'
 import PhoneIcon from '@/components/Icons/PhoneIcon.vue'
 import TaskIcon from '@/components/Icons/TaskIcon.vue'
 import NoteIcon from '@/components/Icons/NoteIcon.vue'
+import ToolsIcon from '@/components/Icons/ToolsIcon.vue'
 import WhatsAppIcon from '@/components/Icons/WhatsAppIcon.vue'
 import IndicatorIcon from '@/components/Icons/IndicatorIcon.vue'
 import CameraIcon from '@/components/Icons/CameraIcon.vue'
@@ -255,6 +168,7 @@ import ListIcon from '@/components/Icons/ListIcon.vue'
 import LostReasonModal from '@/components/Modals/LostReasonModal.vue'
 import LayoutHeader from '@/components/LayoutHeader.vue'
 import Activities from '@/components/Activities/Activities.vue'
+import ToolsDropdown from '@/components/Activities/ToolsDropdown.vue'
 import AssignTo from '@/components/AssignTo.vue'
 import FilesUploader from '@/components/FilesUploader/FilesUploader.vue'
 import SidePanelLayout from '@/components/SidePanelLayout.vue'
@@ -279,6 +193,7 @@ import { callEnabled } from '@/composables/telephony'
 import {
   createResource,
   FileUploader,
+  FeatherIcon,
   Dropdown,
   Tooltip,
   Avatar,
@@ -464,6 +379,11 @@ const tabs = computed(() => {
       name: 'Questionnaire',
       label: __('Questionnaire'),
       icon: ListIcon,
+    },
+    {
+      name: 'Tools',
+      label: __('Tools'),
+      icon: ToolsIcon,
     },
   ]
   return tabOptions.filter((tab) => (tab.condition ? tab.condition() : true))
