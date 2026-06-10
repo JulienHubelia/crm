@@ -50,7 +50,17 @@
                   </div>
                 </template>
               </Popover>
-              <div class="text-ink-gray-9">{{ column.column.name }}</div>
+              <div class="text-ink-gray-9">
+                {{ column.column.name }}
+              </div>
+              <div class="text-ink-gray-9" style="padding-left:10px">
+                <Tooltip 
+                  v-if="columnDescription(column.column.name)" 
+                  :text="columnDescription(column.column.name)"
+                >
+                  <HelpIcon class="h-4 w-4 text-ink-gray-5" />
+                </Tooltip>
+              </div>
             </div>
             <div class="flex">
               <Dropdown :options="actions(column)">
@@ -177,8 +187,10 @@ import Autocomplete from '@/components/frappe-ui/Autocomplete.vue'
 import IndicatorIcon from '@/components/Icons/IndicatorIcon.vue'
 import { isTouchScreenDevice, colors, parseColor } from '@/utils'
 import Draggable from 'vuedraggable'
-import { Dropdown, Popover } from 'frappe-ui'
+import { Dropdown, Popover, Tooltip } from 'frappe-ui'
 import { computed } from 'vue'
+import { statusesStore } from '@/stores/statuses'
+import HelpIcon from '@/components/Icons/HelpIcon.vue'
 
 defineProps({
   options: {
@@ -190,6 +202,18 @@ defineProps({
     }),
   },
 })
+
+const { getLeadStatus, getDealStatus } = statusesStore()
+const statusDoctype = computed(() => {
+  const cf = kanban.value?.data?.column_field
+  return kanban.value?.data?.fields?.find((f) => f.fieldname === cf)?.options
+})
+
+function columnDescription(name) {
+  if (statusDoctype.value === 'CRM Lead Status')
+    return getLeadStatus(name)?.custom_description
+  return ''
+}
 
 const emit = defineEmits(['update', 'loadMore'])
 
