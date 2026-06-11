@@ -20,6 +20,10 @@
           </Button>
         </template>
       </Dropdown>
+      <ToolsDropdown
+        doctype="CRM Lead"
+        :docname="leadId"
+      />
       <Button :label="__('Convert to Deal')" variant="solid" @click="showConvertToDealModal = true" />
     </template>
   </LayoutHeader>
@@ -38,11 +42,7 @@
             @beforeSave="beforeStatusChange"
             @afterSave="reloadResources" 
           />
-          <ToolsDropdown
-            doctype="CRM Lead"
-            :docname="leadId"
-            class="absolute right-0 top-0 z-10 flex h-[45px] items-center pr-5" 
-          />
+          
         </template>
       </Tabs>
     </div>
@@ -379,11 +379,6 @@ const tabs = computed(() => {
       name: 'Questionnaire',
       label: __('Questionnaire'),
       icon: ListIcon,
-    },
-    {
-      name: 'Tools',
-      label: __('Tools'),
-      icon: ToolsIcon,
     },
   ]
   return tabOptions.filter((tab) => (tab.condition ? tab.condition() : true))

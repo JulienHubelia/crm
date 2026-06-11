@@ -47,11 +47,16 @@ function runCreateSow() {
 </script>
 
 <template>
-    <Dropdown :options="tools" placement="right">
-        <Button label="Tools">
-            <template #suffix>
-                <ToolsIcon />
-            </template>
-        </Button>
-    </Dropdown>
+    <div class="tools-dropdown-wrapper">
+        <Dropdown :options="tools" placement="center">
+            <Button label="Tools">
+                <template #suffix>
+                    <ToolsIcon />
+                </template>
+            </Button>
+        </Dropdown>
+    </div>
 </template>
+
+<style lang="css" scoped>
+</style>
